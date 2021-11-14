@@ -3,6 +3,7 @@ package dev.tetra2000.gpslogger
 import android.app.*
 import android.content.Context
 import android.content.Intent
+import android.content.pm.ServiceInfo.FOREGROUND_SERVICE_TYPE_LOCATION
 import android.graphics.Color
 import android.os.Build
 import android.os.IBinder
@@ -33,8 +34,12 @@ class LocationMonitorService : Service() {
                 .setTicker(getText(R.string.ticker_text))
                 .build()
 
-        // Notification ID cannot be 0.
-        startForeground(ONGOING_NOTIFICATION_ID, notification)
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            // https://developer.android.com/about/versions/11/privacy/foreground-services
+            startForeground(ONGOING_NOTIFICATION_ID, notification, FOREGROUND_SERVICE_TYPE_LOCATION)
+        } else {
+            startForeground(ONGOING_NOTIFICATION_ID, notification)
+        }
 
         return super.onStartCommand(intent, flags, startId)
     }
