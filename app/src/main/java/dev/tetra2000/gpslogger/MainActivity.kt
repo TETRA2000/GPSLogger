@@ -19,8 +19,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     fun activateLocationMonitoring(view: View) {
-        // TODO: Verify location permission
-        if (checkSelfPermission(Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
+        if (hasAllLocationPermission()) {
             startLocationMonitorService()
         } else {
             requestLocationPermission()
@@ -37,10 +36,12 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun requestLocationPermission() {
+        // TODO: request `ACCESS_FINE_LOCATION` and `ACCESS_BACKGROUND_LOCATION` separately
         locationPermissionRequest.launch(
             arrayOf(
                 Manifest.permission.ACCESS_FINE_LOCATION,
-                Manifest.permission.ACCESS_COARSE_LOCATION
+                Manifest.permission.ACCESS_COARSE_LOCATION,
+                Manifest.permission.ACCESS_BACKGROUND_LOCATION,
             )
         )
     }
@@ -51,21 +52,27 @@ class MainActivity : AppCompatActivity() {
         ) { permissions ->
             when {
                 permissions.getOrDefault(Manifest.permission.ACCESS_FINE_LOCATION, false) -> {
-                    startLocationMonitorService()
+                    // TODO: prevent infinite loop when request denied
+                    if(!hasAllLocationPermission()) {
+                        requestLocationPermission()
+                    }
                 }
                 permissions.getOrDefault(Manifest.permission.ACCESS_COARSE_LOCATION, false) -> {
-                    locationPermissionRequest.launch(
-                        arrayOf(
-                            Manifest.permission.ACCESS_FINE_LOCATION,
-                            Manifest.permission.ACCESS_COARSE_LOCATION
-                        )
-                    )
+                    // TODO: prevent infinite loop when request denied
+                    if(!hasAllLocationPermission()) {
+                        requestLocationPermission()
+                    }
                 }
                 else -> {
                     // No location access granted.
                 }
             }
         }
+    }
+
+    private fun hasAllLocationPermission(): Boolean {
+        return checkSelfPermission(Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED &&
+                checkSelfPermission(Manifest.permission.ACCESS_BACKGROUND_LOCATION) == PackageManager.PERMISSION_GRANTED
     }
 
 }
